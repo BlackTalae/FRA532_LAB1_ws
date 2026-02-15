@@ -14,7 +14,8 @@ def generate_launch_description():
     
     # Construct relative paths
     dataset_path = os.path.join(package_dir, 'dataset', dataset_name)
-    rviz_config_path = os.path.join(package_dir, 'config', 'one_method_config.rviz')
+    rviz_config_path = os.path.join(package_dir, 'config', '1_EKF_odom_config.rviz')
+    rviz_compare_config_path = os.path.join(package_dir, 'config', '1_compare_EKF_wheel_odom_config.rviz')
 
     return LaunchDescription([
 
@@ -22,31 +23,31 @@ def generate_launch_description():
 
         Node(
             package='fra532_lab1_package',
-            executable='1_EKF_odom_node.py',
-            name='1_EKF_odom_node',
+            executable='EKF_odom_node.py',
+            name='EKF_odom_node',
         ),
 
-        # 2. Node Evaluation
-        Node(
-            package='fra532_lab1_package',
-            executable='eval_node.py',
-            name='eval_node',
-        ),
-
-        # 3. Rosbag
+        # 2. Rosbag
         TimerAction(
             period=1.0,
             actions=[
                 ExecuteProcess(
-                    cmd=['ros2', 'bag', 'play', dataset_path, '--rate', '1.0'],
+                    cmd=['ros2', 'bag', 'play', dataset_path, '--rate', '20.0'],
                     output='screen'
                 ),
             ]
         ),
         
-        # 4. RViz2
+        # 3. RViz2
         ExecuteProcess(
-            cmd=['ros2', 'run', 'rviz2', 'rviz2', '-d', rviz_config_path],
+            cmd=['ros2', 'run', 'rviz2', 'rviz2', '-d', rviz_compare_config_path],
             output='screen'
+        ),
+
+        # Run compare to wheel odometry node
+        Node(
+            package='fra532_lab1_package',
+            executable='wheel_odom_node.py',
+            name='wheel_odom_node',
         ),
     ])

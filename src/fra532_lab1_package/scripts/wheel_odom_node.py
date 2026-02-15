@@ -80,7 +80,7 @@ class Wheel_odom_node(Node):
         self.tf_broadcaster = tf2_ros.TransformBroadcaster(self)
         
         # Publisher for visualizing LiDAR scans
-        self.scan_pub = self.create_publisher(LaserScan, '/visualize_scan', 10)
+        self.scan_pub = self.create_publisher(LaserScan, '/visualize_wheel_odom_scan', 10)
 
         # Position-based odometry path publisher
         if self.mode in ['position', 'all']:
@@ -130,7 +130,7 @@ class Wheel_odom_node(Node):
         """
         scan_to_viz = msg
         scan_to_viz.header.frame_id = 'base_link'
-        self.scan_pub.publish(scan_to_viz)
+        # self.scan_pub.publish(scan_to_viz)
 
     def joint_states_callback(self, msg: JointState):
         """
@@ -269,7 +269,7 @@ class Wheel_odom_node(Node):
         t.transform.translation.z = 0.0
         t.transform.rotation = q
         
-        self.tf_broadcaster.sendTransform(t)
+        # self.tf_broadcaster.sendTransform(t)
 
 
 # ============================================================================

@@ -30,6 +30,7 @@ install(PROGRAMS
   scripts/dummy_script.py
   scripts/eval_node.py
   scripts/wheel_odom_node.py
+  scripts/EKF_odom_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
