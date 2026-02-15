@@ -1,0 +1,8 @@
+source;share/fra532_lab1_package/hook/cmake_prefix_path.ps1
+source;share/fra532_lab1_package/hook/cmake_prefix_path.dsv
+source;share/fra532_lab1_package/hook/cmake_prefix_path.sh
+source;share/fra532_lab1_package/local_setup.bash
+source;share/fra532_lab1_package/local_setup.dsv
+source;share/fra532_lab1_package/local_setup.ps1
+source;share/fra532_lab1_package/local_setup.sh
+source;share/fra532_lab1_package/local_setup.zsh

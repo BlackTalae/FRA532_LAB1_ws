@@ -1,0 +1,4 @@
+source;share/fra532_lab1_package/local_setup.bash
+source;share/fra532_lab1_package/local_setup.dsv
+source;share/fra532_lab1_package/local_setup.sh
+source;share/fra532_lab1_package/local_setup.zsh
