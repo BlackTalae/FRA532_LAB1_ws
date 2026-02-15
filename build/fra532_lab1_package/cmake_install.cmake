@@ -67,7 +67,11 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/fra532_lab1_package" TYPE PROGRAM FILES "/home/talae/FRA532_LAB1_ws/src/fra532_lab1_package/scripts/dummy_script.py")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/fra532_lab1_package" TYPE PROGRAM FILES
+    "/home/talae/FRA532_LAB1_ws/src/fra532_lab1_package/scripts/dummy_script.py"
+    "/home/talae/FRA532_LAB1_ws/src/fra532_lab1_package/scripts/wheel_odom_node.py"
+    "/home/talae/FRA532_LAB1_ws/src/fra532_lab1_package/scripts/eval_node.py"
+    )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
@@ -91,7 +95,11 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/fra532_lab1_package" TYPE DIRECTORY FILES "")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/share/fra532_lab1_package" TYPE DIRECTORY FILES
+    "/home/talae/FRA532_LAB1_ws/src/fra532_lab1_package/config"
+    "/home/talae/FRA532_LAB1_ws/src/fra532_lab1_package/dataset"
+    "/home/talae/FRA532_LAB1_ws/src/fra532_lab1_package/launch"
+    )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
