@@ -14,29 +14,16 @@ def generate_launch_description():
     
     # Construct relative paths
     dataset_path = os.path.join(package_dir, 'dataset', dataset_name)
-    rviz_config_path = os.path.join(package_dir, 'config', 'one_method_config.rviz')
+    rviz_config_path = os.path.join(package_dir, 'config', '2_ICP_EKF_odom_config.rviz')
 
     return LaunchDescription([
 
-        # 1. One Method Node
+        # 1. ICP Odometry Node
         Node(
             package='fra532_lab1_package',
-            executable='wheel_odom_node.py',
-            name='wheel_odom_node',
-            parameters=[{'mode': 'position'}]
+            executable='ICP_EKF_odom_node.py',
+            name='ICP_EKF_odom_node',
         ),
-
-        # Node(
-        #     package='fra532_lab1_package',
-        #     executable='EKF_odom_node.py',
-        #     name='EKF_odom_node',
-        # ),
-
-        # Node(
-        #     package='fra532_lab1_package',
-        #     executable='KEN_ICP_node.py',
-        #     name='KEN_ICP_node',
-        # ),
 
         # 2. Node Evaluation
         Node(

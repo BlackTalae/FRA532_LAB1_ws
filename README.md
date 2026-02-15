@@ -100,35 +100,29 @@ $$\theta_{t+1} = \theta_t + \omega \Delta t$$
 
 ``Sequence 00 Empty Hallway``
 
-**Position-based Odometry**
+![Path - Sequence 00](pic/part0/Seq00_path_all.png)
 
-**Velocity-based Odometry**
-
-Analysis
-- Accuracy: 
-- Drift: 
-- Robustness: 
+**Analysis**
+- **Accuracy**: 
+- **Drift**: 
+- **Robustness**: 
 
 ``Sequence 01 Non-Empty Hallway with Sharp Turns``
 
-**Position-based Odometry**
+![Path - Sequence 01](pic/part0/Seq01_path_all.png)
 
-**Velocity-based Odometry**
-
-Analysis
-- Accuracy: 
-- Drift: 
-- Robustness: 
+**Analysis**
+- **Accuracy**: 
+- **Drift**: 
+- **Robustness**: 
 
 ``Sequence 02 Non-Empty Hallway with Non-Aggressive Motion``
 
-**Position-based Odometry**
+![Path - Sequence 02](pic/part0/Seq02_path_all.png)
 
-**Velocity-based Odometry**
-
-Analysis
-- Accuracy: 
-- Drift: 
-- Robustness: 
+**Analysis**
+- **Accuracy**: 
+- **Drift**: 
+- **Robustness**: 
 
 ``Summary``
