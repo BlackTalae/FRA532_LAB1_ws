@@ -18,25 +18,13 @@ def generate_launch_description():
 
     return LaunchDescription([
 
-        # 1. One Method Node
+        # 1. EKF Odometry Node
+
         Node(
             package='fra532_lab1_package',
-            executable='wheel_odom_node.py',
-            name='wheel_odom_node',
-            parameters=[{'mode': 'position'}]
+            executable='1_EKF_odom_node.py',
+            name='1_EKF_odom_node',
         ),
-
-        # Node(
-        #     package='fra532_lab1_package',
-        #     executable='EKF_odom_node.py',
-        #     name='EKF_odom_node',
-        # ),
-
-        # Node(
-        #     package='fra532_lab1_package',
-        #     executable='KEN_ICP_node.py',
-        #     name='KEN_ICP_node',
-        # ),
 
         # 2. Node Evaluation
         Node(

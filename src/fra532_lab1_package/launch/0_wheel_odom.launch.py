@@ -6,7 +6,7 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
 
-    dataset_no = 0
+    dataset_no = 2
     dataset_name = f"fibo_floor3_seq0{dataset_no}"
     
     # Get package directory
@@ -23,28 +23,21 @@ def generate_launch_description():
             package='fra532_lab1_package',
             executable='wheel_odom_node.py',
             name='wheel_odom_node',
-            parameters=[{'mode': 'all'}]
+            parameters=[{'mode': 'velocity'}]
         ),
 
-        # 2. Evaluation Node
-        Node(
-            package='fra532_lab1_package',
-            executable='eval_node.py',
-            name='eval_node',
-        ),
-
-        # 3. Rosbag
+        # 2. Rosbag
         TimerAction(
             period=1.0,
             actions=[
                 ExecuteProcess(
-                    cmd=['ros2', 'bag', 'play', dataset_path, '--rate', '1.0'],
+                    cmd=['ros2', 'bag', 'play', dataset_path, '--rate', '20.0'],
                     output='screen'
                 ),
             ]
         ),
         
-        # 4. RViz2
+        # 3. RViz2
         ExecuteProcess(
             cmd=['ros2', 'run', 'rviz2', 'rviz2', '-d', rviz_config_path],
             output='screen'

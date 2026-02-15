@@ -175,8 +175,8 @@ class EvalNode(Node):
         self.get_logger().info(f'Initial Heading: {metrics["initial_heading"]:.2f}°')
         self.get_logger().info(f'Final Heading:   {metrics["final_heading"]:.2f}°')
         self.get_logger().info(f'Heading Change:  {metrics["heading_change"]:.2f}°')
-    
-    def find_corners(self, path_data, window_size=5, angle_threshold=45.0):
+
+    def find_corners(self, path_data, window_size=5, angle_threshold=10.0):
         """
         path_data: list ของ (x, y)
         window_size: จำนวนจุดที่จะใช้คำนวณ Vector (ช่วยกรอง Noise)
@@ -213,82 +213,6 @@ class EvalNode(Node):
 
         # กรองจุดที่อยู่ใกล้กันเกินไป (Non-maximum suppression)
         return self.filter_close_corners(corners)
-
-    def filter_close_corners(self, corners, min_dist=0.5):
-        """กรองจุดมุมที่อยู่ใกล้กันเกินไป"""
-        if not corners: 
-            return []
-        filtered = [corners[0]]
-        for p in corners[1:]:
-            dist = np.linalg.norm(np.array(p) - np.array(filtered[-1]))
-            if dist > min_dist:
-                filtered.append(p)
-        return filtered
-
-    def calculate_angle(self, p1, p2, p3):
-        """
-        คำนวณมุมที่จุด p2 ระหว่างจุด p1 และ p3
-        p1, p2, p3: tuple ของ (x, y)
-        return: มุมเป็นองศา
-        """
-        # สร้าง Vector จาก p2 ไป p1 และ p2 ไป p3
-        v1 = np.array(p1) - np.array(p2)
-        v2 = np.array(p3) - np.array(p2)
-        
-        # คำนวณมุมระหว่างสอง Vector
-        norm_v1 = np.linalg.norm(v1)
-        norm_v2 = np.linalg.norm(v2)
-        
-        if norm_v1 > 0 and norm_v2 > 0:
-            unit_v1 = v1 / norm_v1
-            unit_v2 = v2 / norm_v2
-            dot_product = np.dot(unit_v1, unit_v2)
-            
-            # ป้องกันค่าเกินช่วง [-1, 1] จาก floating point error
-            angle = np.degrees(np.arccos(np.clip(dot_product, -1.0, 1.0)))
-            return angle
-        else:
-            return 0.0
-
-    def process_final_path(self):
-        """
-        ประมวลผลเส้นทางสุดท้ายเพื่อหาจุดหักเหและคำนวณมุมเลี้ยว
-        """
-        # วิเคราะห์มุมเลี้ยวสำหรับ Wheel Position Odometry
-        if self.wheel_position_received and len(self.wheel_position_poses) > 0:
-            path_data = [(pose.pose.position.x, pose.pose.position.y) for pose in self.wheel_position_poses]
-            corners = self.find_corners(path_data)
-            
-            if len(corners) >= 3:
-                self.get_logger().info(f'\n=== Corner Analysis (Wheel Position Odometry) ===')
-                self.get_logger().info(f'Found {len(corners)} corners')
-                
-                for i in range(len(corners) - 2):
-                    p1 = corners[i]
-                    p2 = corners[i+1]
-                    p3 = corners[i+2]
-                    
-                    ortho_angle = self.calculate_angle(p1, p2, p3)
-                    self.get_logger().info(f'มุมที่ {i+1}: {ortho_angle:.2f} องศา')
-                    self.get_logger().info(f'Error: {abs(90 - ortho_angle):.2f} องศา')
-        
-        # วิเคราะห์มุมเลี้ยวสำหรับ Wheel Velocity Odometry
-        if self.wheel_velocity_received and len(self.wheel_velocity_poses) > 0:
-            path_data = [(pose.pose.position.x, pose.pose.position.y) for pose in self.wheel_velocity_poses]
-            corners = self.find_corners(path_data)
-            
-            if len(corners) >= 3:
-                self.get_logger().info(f'\n=== Corner Analysis (Wheel Velocity Odometry) ===')
-                self.get_logger().info(f'Found {len(corners)} corners')
-                
-                for i in range(len(corners) - 2):
-                    p1 = corners[i]
-                    p2 = corners[i+1]
-                    p3 = corners[i+2]
-                    
-                    ortho_angle = self.calculate_angle(p1, p2, p3)
-                    self.get_logger().info(f'มุมที่ {i+1}: {ortho_angle:.2f} องศา')
-                    self.get_logger().info(f'Error: {abs(90 - ortho_angle):.2f} องศา')
     
     def plot_results(self, results):
         """Create visualization plots"""
