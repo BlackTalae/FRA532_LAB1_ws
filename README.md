@@ -212,20 +212,23 @@ $K_t$ Kalman Gain - Weighting factor between "predicted value" and "actual measu
 **To determine the position of a two-wheeled robot, each matrix can be defined as follows:**
 
 ``State Vector``
-$$\hat{x}_{t} = f(\hat{x}_{t-1}, u_t) = \begin{bmatrix} x_{t-1} + v \cos(\psi_{t-1}) \Delta t \\ y_{t-1} + v \sin(\psi_{t-1}) \Delta t \\ \psi_{t-1} + \omega \Delta t \end{bmatrix}$$
+
+$$\hat{x}_{t} = f(\hat{x}_{t-1}, u_t) = \begin{bmatrix} x_{t-1} + v \cos(\psi_{t-1}) \Delta t ; y_{t-1} + v \sin(\psi_{t-1}) \Delta t ; \psi_{t-1} + \omega \Delta t \end{bmatrix}$$
 
 ``Jacobian Matrix``
 
-$$G_t = \frac{\partial f}{\partial \mathbf{x}} = \begin{bmatrix} \frac{\partial f_x}{\partial x} & \frac{\partial f_x}{\partial y} & \frac{\partial f_x}{\partial \psi} \\ \frac{\partial f_y}{\partial x} & \frac{\partial f_y}{\partial y} & \frac{\partial f_y}{\partial \psi} \\ \frac{\partial f_\psi}{\partial x} & \frac{\partial f_\psi}{\partial y} & \frac{\partial f_\psi}{\partial \psi} \end{bmatrix} = \begin{bmatrix} 1 & 0 & -v \sin(\psi) \Delta t \\ 0 & 1 & v \cos(\psi) \Delta t \\ 0 & 0 & 1 \end{bmatrix}$$
+$$G_t = \frac{\partial f}{\partial \mathbf{x}} = \begin{bmatrix} \frac{\partial f_x}{\partial x} & \frac{\partial f_x}{\partial y} & \frac{\partial f_x}{\partial \psi} ; \frac{\partial f_y}{\partial x} & \frac{\partial f_y}{\partial y} & \frac{\partial f_y}{\partial \psi} ; \frac{\partial f_\psi}{\partial x} & \frac{\partial f_\psi}{\partial y} & \frac{\partial f_\psi}{\partial \psi} \end{bmatrix} = \begin{bmatrix} 1 & 0 & -v \sin(\psi) \Delta t ; 0 & 1 & v \cos(\psi) \Delta t ; 0 & 0 & 1 \end{bmatrix}$$
 
 ``Process Noise Matrix``
-$$Q = \begin{bmatrix} \sigma_x^2 & 0 & 0 \\ 0 & \sigma_y^2 & 0 \\ 0 & 0 & \sigma_\psi^2 \end{bmatrix}$$
+
+$$Q = \begin{bmatrix} \sigma_x^2 & 0 & 0 ; 0 & \sigma_y^2 & 0 ; 0 & 0 & \sigma_\psi^2 \end{bmatrix}$$
 
 - Model reliability coefficient
     - If the value is low, the system trusts the model more.
     - If the value is high, the system trusts the IMU more.
 
 ``Sensor Noise Matrix``
+
 $$R = [\sigma_{imu\_yaw}^2]$$
 
 - $\sigma_{imu\_yaw}^2$: The variance of the IMU signal. 
@@ -233,10 +236,12 @@ $$R = [\sigma_{imu\_yaw}^2]$$
     - **Large value:** The system will trust it less (the path will be smooth, but will accumulate drift easily).
 
 ``Initial State Covariance Matrix``
-$$P_0 = \begin{bmatrix} p_{xx} & 0 & 0 \\ 0 & p_{yy} & 0 \\ 0 & 0 & p_{\psi\psi} \end{bmatrix}$$
+
+$$P_0 = \begin{bmatrix} p_{xx} & 0 & 0 ; 0 & p_{yy} & 0 ; 0 & 0 & p_{\psi\psi} \end{bmatrix}$$
 
 ``Observation Model Matrix``
-$$H = \begin{bmatrix} 0 & 0 & 1 \end{bmatrix}$$
+
+$$H = \begin{bmatrix} 0 ; 0 ; 1 \end{bmatrix}$$
 
 In this case, the observation model is only $Yaw$
 
