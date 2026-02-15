@@ -893,21 +893,7 @@ def main():
         rclpy.spin(node)
     except KeyboardInterrupt:
         pass
-    finally:
-        node.get_logger().info('='*60)
-        node.get_logger().info('FINAL STATISTICS:')
-        node.get_logger().info(f'  Total scans: {node.total_scans}')
-        node.get_logger().info(f'  Poor quality scans: {node.poor_scan_count} '
-                             f'({100*node.poor_scan_count/max(node.total_scans,1):.1f}%)')
-        node.get_logger().info(f'  Keyframes: {node.keyframe_count}')
-        node.get_logger().info(f'  Map points: {node.local_map_point_cloud.shape[0]}')
-        node.get_logger().info(f'  ICP success rate: {node.icp_success_count}/{node.total_scans} '
-                             f'({100*node.icp_success_count/max(node.total_scans,1):.1f}%)')
-        node.get_logger().info(f'  Jumps detected: {node.jump_count}')
-        node.get_logger().info(f'  Final pose: ({node.icp_pose[0]:.2f}, {node.icp_pose[1]:.2f}, '
-                             f'{np.rad2deg(node.icp_pose[2]):.1f}°)')
-        node.get_logger().info('='*60)
-        
+    finally:    
         node.destroy_node()
         rclpy.shutdown()
 
