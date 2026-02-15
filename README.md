@@ -10,10 +10,6 @@ This project aims to study and develop robot localization and mapping procedures
 - **Part 2:** Position improvement using ICP Scan Matching, using EKF values ​​as the initial guess to generate LiDAR-based odometry.
 - **Part 3:** Performing Full SLAM with slam_toolbox to compare the performance of loop closure and complete map generation.
 
-## **Usage**
-
-**How to run this project.**
-
 ## **Dataset Description**
 The dataset is provided as a ROS bag and contains sensor measurements recorded during robot motion.
 
