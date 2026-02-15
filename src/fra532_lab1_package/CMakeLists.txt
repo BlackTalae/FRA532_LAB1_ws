@@ -32,6 +32,7 @@ install(PROGRAMS
   scripts/wheel_odom_node.py
   scripts/EKF_odom_node.py
   scripts/ICP_EKF_odom_node.py
+  scripts/SLAM_node.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
