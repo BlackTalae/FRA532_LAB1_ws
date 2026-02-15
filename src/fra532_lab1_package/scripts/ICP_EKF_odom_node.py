@@ -71,7 +71,8 @@ class ICPNode(Node):
         self.icp_path_pub = self.create_publisher(Path, '/icp_path', 10)  # Point-to-Plane ICP
         self.icp_p2point_path_pub = self.create_publisher(Path, '/icp_p2point_path', 10)  # Point-to-Point ICP
         self.ekf_path_pub = self.create_publisher(Path, '/ekf_path', 10)
-        self.icp_map_pub = self.create_publisher(OccupancyGrid, '/icp_map', 10)  # Occupancy grid publisher
+        self.icp_map_pub = self.create_publisher(OccupancyGrid, '/icp_map', 10)  # Point-to-Plane map
+        self.icp_p2point_map_pub = self.create_publisher(OccupancyGrid, '/icp_p2point_map', 10)  # Point-to-Point map
         self.point_cloud_pub = self.create_publisher(PointCloud2, '/point_cloud', 10)
         self.current_scan_pub = self.create_publisher(PointCloud2, '/current_scan', 10)
         self.tf_broadcaster = TransformBroadcaster(self)
@@ -119,18 +120,22 @@ class ICPNode(Node):
         self.icp_p2point_pose = np.array([0.0, 0.0, 0.0])  # Point-to-Point ICP pose (for comparison)
         
         # --- Keyframe Management ---
-        self.keyframes = []
+        self.keyframes = []  # Point-to-Plane keyframes
+        self.keyframes_p2point = []  # Point-to-Point keyframes
         self.last_keyframe_pose = np.array([0.0, 0.0, 0.0])
+        self.last_keyframe_pose_p2point = np.array([0.0, 0.0, 0.0])
         
         # Keyframe thresholds
         self.keyframe_distance_threshold = 0.20  # 20cm
         self.keyframe_angle_threshold = np.deg2rad(10)  # 10 degrees
         self.min_keyframe_interval = 0.2  # 200ms minimum
         self.last_keyframe_time = 0.0
+        self.last_keyframe_time_p2point = 0.0
         
         # --- Store point cloud ---
         self.current_scan = None
-        self.local_map_point_cloud = np.array([]).reshape(0, 2)
+        self.local_map_point_cloud = np.array([]).reshape(0, 2)  # Point-to-Plane map
+        self.local_map_point_cloud_p2point = np.array([]).reshape(0, 2)  # Point-to-Point map
         
         # --- Map management ---
         self.max_map_size = 15000
@@ -239,6 +244,67 @@ class ICPNode(Node):
         
         return occ_grid
 
+    def create_occupancy_grid_p2point(self, timestamp):
+        """Convert accumulated keyframes to occupancy grid (Point-to-Point ICP)"""
+        if len(self.keyframes_p2point) == 0:
+            return None
+        
+        # Create empty grid (unknown = -1)
+        grid = np.full((self.grid_height, self.grid_width), -1, dtype=np.int8)
+        
+        # Process each keyframe
+        for kf in self.keyframes_p2point:
+            # Get robot position when this scan was taken
+            robot_world_x = kf.pose[0]
+            robot_world_y = kf.pose[1]
+            
+            robot_grid_x = int((robot_world_x - self.grid_origin_x) / self.grid_resolution)
+            robot_grid_y = int((robot_world_y - self.grid_origin_y) / self.grid_resolution)
+            
+            # Get points in map frame for this keyframe
+            scan_points = kf.scan_in_map
+            
+            # Process each point in this scan
+            for i in range(0, len(scan_points), 2):  # Sample every 2nd point for efficiency
+                point = scan_points[i]
+                
+                # Convert world coordinates to grid coordinates
+                grid_x = int((point[0] - self.grid_origin_x) / self.grid_resolution)
+                grid_y = int((point[1] - self.grid_origin_y) / self.grid_resolution)
+                
+                # Check if within bounds
+                if 0 <= grid_x < self.grid_width and 0 <= grid_y < self.grid_height:
+                    # Mark obstacle
+                    grid[grid_y, grid_x] = 100
+                    
+                    # Ray trace from robot position to obstacle
+                    cells = self.bresenham_line(robot_grid_x, robot_grid_y, grid_x, grid_y)
+                    
+                    # Mark all cells except the last one as free
+                    for cx, cy in cells[:-1]:
+                        if 0 <= cx < self.grid_width and 0 <= cy < self.grid_height:
+                            if grid[cy, cx] == -1:  # Only mark if unknown
+                                grid[cy, cx] = 0  # Free space
+        
+        # Create OccupancyGrid message
+        occ_grid = OccupancyGrid()
+        occ_grid.header.stamp = timestamp
+        occ_grid.header.frame_id = 'odom'
+        
+        occ_grid.info.resolution = self.grid_resolution
+        occ_grid.info.width = self.grid_width
+        occ_grid.info.height = self.grid_height
+        occ_grid.info.origin.position.x = self.grid_origin_x
+        occ_grid.info.origin.position.y = self.grid_origin_y
+        occ_grid.info.origin.position.z = 0.0
+        occ_grid.info.origin.orientation.w = 1.0
+        
+        # Flatten grid (row-major order)
+        occ_grid.data = grid.flatten().tolist()
+        
+        return occ_grid
+
+
     def bresenham_line(self, x0, y0, x1, y1):
         """Bresenham's line algorithm to get all cells between two points"""
         cells = []
@@ -334,6 +400,44 @@ class ICPNode(Node):
                 f'KF #{self.keyframe_count}: ({pose[0]:.2f}, {pose[1]:.2f}, {np.rad2deg(pose[2]):.1f}°), '
                 f'Map: {self.local_map_point_cloud.shape[0]}pts'
             )
+
+    def is_keyframe_p2point(self, current_pose, current_time):
+        """Determine if current pose should be a keyframe (Point-to-Point)"""
+        if (current_time - self.last_keyframe_time_p2point) < self.min_keyframe_interval:
+            return False
+        
+        if len(self.keyframes_p2point) == 0:
+            return True
+        
+        delta = current_pose - self.last_keyframe_pose_p2point
+        distance = np.sqrt(delta[0]**2 + delta[1]**2)
+        angle = abs(wrap(delta[2]))
+        
+        if distance > self.keyframe_distance_threshold or angle > self.keyframe_angle_threshold:
+            return True
+        
+        return False
+
+    def add_keyframe_p2point(self, pose, scan, timestamp):
+        """Add a new keyframe and update the map (Point-to-Point)"""
+        kf = KeyFrame(pose, scan, timestamp)
+        kf.scan_in_map = pointcloud_to_odom(scan, pose[0], pose[1], pose[2])
+        
+        self.keyframes_p2point.append(kf)
+        
+        if self.local_map_point_cloud_p2point.shape[0] == 0:
+            self.local_map_point_cloud_p2point = kf.scan_in_map
+        else:
+            self.local_map_point_cloud_p2point = np.vstack((self.local_map_point_cloud_p2point, kf.scan_in_map))
+        
+        # Filtering
+        if self.local_map_point_cloud_p2point.shape[0] > self.max_map_size:
+            self.local_map_point_cloud_p2point = remove_outliers(self.local_map_point_cloud_p2point, 0.15, 5)
+            self.local_map_point_cloud_p2point = voxel_grid_filter(self.local_map_point_cloud_p2point, leaf_size=0.08)
+        
+        self.last_keyframe_pose_p2point = pose.copy()
+        self.last_keyframe_time_p2point = timestamp
+
 
     def detect_jump(self, new_pose, delta_ekf):
         """Detect if pose jumped unreasonably"""
@@ -575,10 +679,15 @@ class ICPNode(Node):
             self.last_valid_pose = self.icp_pose.copy()
         
         # ========================================
-        # STEP 4: Keyframe decision
+        # STEP 4: Keyframe decision (both ICP variants)
         # ========================================
+        # Point-to-Plane keyframes
         if self.is_keyframe(self.icp_pose, current_time):
             self.add_keyframe(self.icp_pose, self.current_scan, current_time)
+        
+        # Point-to-Point keyframes
+        if self.is_keyframe_p2point(self.icp_p2point_pose, current_time):
+            self.add_keyframe_p2point(self.icp_p2point_pose, self.current_scan, current_time)
         
         # ========================================
         # STEP 5: Publish
@@ -610,16 +719,24 @@ class ICPNode(Node):
             )
             self.publish_processed_pc(scan_in_map, now, "odom", self.current_scan_pub)
         
+        
         # Publish occupancy grid and point cloud periodically
-        if self.total_scans % 10 == 0 and len(self.keyframes) > 0:
-            # Publish occupancy grid (now uses all keyframes with proper ray origins)
-            occ_grid = self.create_occupancy_grid(now)
-            if occ_grid is not None:
-                self.icp_map_pub.publish(occ_grid)
+        if self.total_scans % 10 == 0:
+            # Point-to-Plane map
+            if len(self.keyframes) > 0:
+                occ_grid = self.create_occupancy_grid(now)
+                if occ_grid is not None:
+                    self.icp_map_pub.publish(occ_grid)
+                
+                # Publish point cloud
+                if self.local_map_point_cloud.shape[0] > 0:
+                    self.publish_processed_pc(self.local_map_point_cloud, now, "odom", self.point_cloud_pub)
             
-            # Publish point cloud
-            if self.local_map_point_cloud.shape[0] > 0:
-                self.publish_processed_pc(self.local_map_point_cloud, now, "odom", self.point_cloud_pub)
+            # Point-to-Point map
+            if len(self.keyframes_p2point) > 0:
+                occ_grid_p2point = self.create_occupancy_grid_p2point(now)
+                if occ_grid_p2point is not None:
+                    self.icp_p2point_map_pub.publish(occ_grid_p2point)
 
     def joint_callback(self, msg):
         self.joint_pos, self.joint_vel = msg.position, msg.velocity

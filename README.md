@@ -98,31 +98,60 @@ $$\theta_{t+1} = \theta_t + \omega \Delta t$$
 
 ### **Result & Discussion**
 
+**Green Line:** Position-based Odometry
+
+**Yellow Line:** Velocity-based Odometry
+
 ``Sequence 00 Empty Hallway``
 
-![Path - Sequence 00](pic/part0/Seq00_path_all.png)
+![Path - Sequence 00](pic/part0/seq00_path_all.png)
 
 **Analysis**
-- **Accuracy**: 
-- **Drift**: 
-- **Robustness**: 
+
+- **Heading Drift**: Both modes exhibit clear heading drift when compared to the grid lines. The final coordinates fail to converge back to the starting point (closure error).
+
+- **Path Smoothness**: The Position Mode (Green) path shows higher jitter compared to Velocity Mode (Yellow), indicating lower robustness to environmental conditions.
+
+- **Turning Accuracy**: The green line maintains sharper rectangular corners in some instances, while the yellow line exhibits over-smoothed curves at corners.
+
+---
 
 ``Sequence 01 Non-Empty Hallway with Sharp Turns``
 
-![Path - Sequence 01](pic/part0/Seq01_path_all.png)
+![Path - Sequence 01](pic/part0/seq01_path_all.png)
 
 **Analysis**
-- **Accuracy**: 
-- **Drift**: 
-- **Robustness**: 
+
+- **Heading Drift**: Both modes show severe heading drift, causing significant distortion of the rectangular shape when compared to the grid lines.
+
+- **Path Smoothness**: Position Mode (Green) exhibits high jitter and path oscillations throughout the trajectory, reflecting lower robustness to environmental noise compared to Velocity Mode (Yellow), which maintains better continuity and smoothness.
+
+- **Turning Accuracy**: Position Mode (Green) better preserves the rectangular shape at corners despite high noise levels, while Velocity Mode (Yellow) shows over-smoothed curves at all turns.
+
+---
 
 ``Sequence 02 Non-Empty Hallway with Non-Aggressive Motion``
 
-![Path - Sequence 02](pic/part0/Seq02_path_all.png)
+![Path - Sequence 02](pic/part0/seq02_path_all.png)
 
 **Analysis**
-- **Accuracy**: 
-- **Drift**: 
-- **Robustness**: 
+
+- **Heading Drift**: Both modes show clear heading drift when compared to grid lines. The final coordinates fail to converge to the starting point (closure error). Additionally, there is severe accumulated "orientation loss" in certain sections, causing the rectangular shape to deviate significantly from the main axis.
+
+- **Path Smoothness**: Position Mode (Green) consistently shows higher jitter compared to Velocity Mode (Yellow), indicating lower robustness to environmental conditions and noise. During moments of swaying or vibration, the green path responds with more severe oscillations.
+
+- **Turning Accuracy**: The green line maintains sharper rectangular corners in some instances despite high noise levels, while the yellow line exhibits over-smoothed curves at corners.
+
+---
 
 ``Summary``
+
+From the comparative analysis across all 3 sequences, **Velocity Mode (yellow line) is superior overall** for further development because:
+
+**Heading Drift**: All 3 sequences show that both modes exhibit clear heading drift and closure error when compared to grid lines, especially in sequences 01 and 02 where the final coordinates deviate significantly from the starting point due to accumulated error during motion.
+
+**Path Smoothness**: Velocity Mode (Yellow) provides smoother and more continuous paths across all test sequences, while Position Mode (Green) shows significantly higher jitter, indicating lower environmental robustness. The smoothness of the yellow line helps navigation systems and local planners operate more stably, preventing robot oscillations caused by noisy coordinates.
+
+**Turning Accuracy**: Although the green line better preserves sharp rectangular corners in some instances, the over-smoothed curves at corners in the yellow line are "easier to tune and correct" by improving yaw accuracy from other sensors, which will be addressed in subsequent development.
+
+**Velocity Mode (yellow) is the most suitable choice for integration with EKF because EKF will compensate for its weaknesses in heading drift and over-smoothed turns, while benefiting from the smooth path as a good initial estimate.**

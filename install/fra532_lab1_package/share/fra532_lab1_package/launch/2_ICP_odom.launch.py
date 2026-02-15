@@ -6,7 +6,7 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
 
-    dataset_no = 0
+    dataset_no = 2
     dataset_name = f"fibo_floor3_seq0{dataset_no}"
     
     # Get package directory
